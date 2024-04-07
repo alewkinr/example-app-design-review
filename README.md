@@ -1,53 +1,32 @@
-# Application design
+# Application Design Review Task
 
-В коде представлен прототип сервиса бронирования номеров в отелях,
-в котором реализована возможность забронировать свободный номер в отеле.
+## Task definition
+The code presents a prototype of a hotel room booking service, which includes the ability to reserve a vacant room in a hotel.
 
-Сервис будет развиваться, например:
+The task is to refactor the structure and code of the application, fix existing problems in the logic, define and split codebase into different layers. It is also required to show the ability to use best practices and design patterns in the code.
 
-- появится отправка письма-подтверждения о бронировании
-- появятся скидки, промокоды, программы лояльности
-- появится возможность бронирования нескольких номеров
+Eventually, think about that the application will evolve soon, for example:
 
-## Задание
+* There is a plan to implement feature to send confirmation email after booking.
+* Discounts, promo codes, loyalty programs will be introduced.
+* The ability to book multiple rooms is considered to be added.
 
-Провести рефакторинг структуры и кода приложения, исправить существующие
-проблемы в логике. Персистентное хранение реализовывать не требуется,
-все данные храним в памяти сервиса.
+> **✨Definition of Done:**
+> 
+> As a result of completing the task, structured code of the service is expected, with correctly functioning logic for hotel room booking scenarios.
 
-В результате выполнения задания ожидается структурированный код сервиса,
-с корректно работающей логикой сценариев бронирования номеров в отелях.
+## Limitations:
+* The main store of application is expected to be in memory but is easily replaceable with any external storage.
+* Use only the standard Go library packages and router (i.e., [chi](https://github.com/go-chi/chi)).
 
-Чеклист:
 
-- код реорганизован и выделены слои
-- выделены абстракций и интерфейсы
-- техническе и логические ошибки исправлены
+## Run examples
 
-Ограничения:
-
-- ожидаем реализацию, которая управляет состоянием в памяти приложения,
- но которую легко заменить на внешнее хранилище
-- если у тебя есть опыт с Go: для решения надо использовать только
- стандартную библиотеку Go + роутер (например chi)
-- если у тебя нет опыта с Go: можно реализовать решение на своем
- любимом стеке технологий
-
-## Что будет на встрече
-
-На встрече ожидаем что ты продемонстрируешь экран и презентуешь свое решение:
-расскажешь какими проблемами обладает исходный код и как они решены в твоем варианте.
-Мы будем задавать вопросы о том почему было решено разделить ответственность между
-компонентами тем или иным образом, какими принципами ты при этом руководствуешься.
-Спросим что будет если продакт решит добавить какую-то новую фичу — как она ляжет
-на предложенную тобой структуру. Также можем поговорить и о более технических вещах:
-о значениях и указателях, многопоточности, интерфейсах, каналах.
-
-## Например
-
+The application is expected to start with command presented below from the main package directory or with `Makefile` command if it wis provided.:
 ```sh
 go run main.go
 ```
+The HTTP API of the application is expected to correctly handle this cURL request. The request body can be improved, but no changes are expected with required fields. You can use the following cURL request to test the application:
 
 ```sh
 curl --location --request POST 'localhost:8080/orders' \
@@ -60,25 +39,3 @@ curl --location --request POST 'localhost:8080/orders' \
     "to": "2024-01-04T00:00:00Z"
 }'
 ```
-## Design issues
-> Код плохо структурирован, все написано в одном `main.go`, что приводит к доп. костам при поддержке и развитии сервиса
->> **Решние:** использовать `go-standard-template` для организации кодовой базы.
-
-> Используется глобальный логгер, что не очень хорошо, поскольку его можно вызывать в любом месте кода. Нет явной фиксации логгера, как зависимости через DI-контейнер.
->> **Решение:** Сделать общий контейнер с приложением, в кострукторе создавать все зависимости (config, logger, db-conn, queue-conn) и прокидывать их в использующие их слои
-
-> Нет graceful shutdown
->> **Решение:** добавить
-
-> Бизнес-логика приложения (например подсчет доступности комнаты) реализован в хендлере
-> Доступ к данным тоже реализован в хендлере
-> Нет разделения между слоем репрезентации данных и моделями, с которыми работает бизнес-логика
-> Нет интерфейсов нигде
-> Два домена (доступность комнат и заказы) слиты 
-> Функции работы со временем вынести в pkg/time-tools
->  
-
-## Не решненные проблемы
-> В модели заказа UserEmail используется, а не userID
-> У ордеров нет статусов, по хорошему заказ можно отменить и ли "забронировать" комнату на какое-то время
-> Написано что дается возможность забронировать номер, но номер то не бронируется, поскольку room id нигде не передается

@@ -1,14 +1,3 @@
-//go:build withReviewTask
-
-// Ниже реализован сервис бронирования номеров в отеле. В предметной области
-// выделены два понятия: Order — заказ, который включает в себя даты бронирования
-// и контакты пользователя, и RoomAvailability — количество свободных номеров на
-// конкретный день.
-//
-// Задание:
-// - провести рефакторинг кода с выделением слоев и абстракций
-// - применить best-practices там где это имеет смысл
-// - исправить имеющиеся в реализации логические и технические ошибки и неточности
 package main
 
 import (
@@ -21,6 +10,7 @@ import (
 	"time"
 )
 
+// Order — the order that includes dates for booking
 type Order struct {
 	HotelID   string    `json:"hotel_id"`
 	RoomID    string    `json:"room_id"`
@@ -31,6 +21,7 @@ type Order struct {
 
 var Orders = []Order{}
 
+// RoomAvailability — the number of available rooms for a specific date
 type RoomAvailability struct {
 	HotelID string    `json:"hotel_id"`
 	RoomID  string    `json:"room_id"`
