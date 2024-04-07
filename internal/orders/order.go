@@ -24,3 +24,8 @@ type Order struct {
 
 	Status string
 }
+
+// IsEmpty — checks if order is empty
+func (o *Order) IsEmpty() bool {
+	return o.ID == 0
+}

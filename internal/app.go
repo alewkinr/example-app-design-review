@@ -37,7 +37,9 @@ func NewApplication() (*Application, error) {
 	}
 
 	bookingMngr := booking.NewManager(log, inmemory.NewBookingRepository())
-	app.ordersAPI = http.NewOrdersAPI(orders.NewManager(log, bookingMngr, inmemory.NewOrdersRepository()))
+	ordMngr := orders.NewManager(log, bookingMngr, inmemory.NewOrdersRepository())
+
+	app.ordersAPI = http.NewOrdersAPI(ordMngr)
 
 	app.log = log
 	app.srv = &stdhttp.Server{

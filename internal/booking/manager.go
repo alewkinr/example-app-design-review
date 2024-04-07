@@ -15,7 +15,7 @@ func NewManager(log *slog.Logger, bookingsRepository Repository) *Manager {
 }
 
 // IsRoomAvailable — manager checks if booking  is available using its private logic
-func (m *Manager) IsRoomAvailable(b *Booking) bool {
+func (m *Manager) IsRoomAvailable(b Booking) bool {
 	bookings, err := m.bookingsRepository.SelectIntersectedBookings(b.Room.ID, b.CheckInDateTime, b.CheckOutDateTime)
 	if err != nil {
 		m.log.Error("select bookings", "booking", b, "error", err)
@@ -30,7 +30,7 @@ func (m *Manager) IsRoomAvailable(b *Booking) bool {
 }
 
 // UpdateBooking — updates booking
-func (m *Manager) UpdateBooking(b *Booking) error {
+func (m *Manager) UpdateBooking(b Booking) error {
 	_, updBookingErr := m.bookingsRepository.SaveBooking(b)
 	return updBookingErr
 }
