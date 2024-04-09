@@ -22,48 +22,51 @@ func NewManager(log *slog.Logger, roomsManager *booking.Manager, ordersRepositor
 }
 
 // CreateOrder — creates order for future processing
-func (m *Manager) CreateOrder(o *Order) (*Order, error) {
+func (m *Manager) CreateOrder(o Order) (Order, error) {
+	o.Status = StatusCreated
+
 	// we save order, but we don't check if room is available
 	// keep in mind that room booking checking can be done asynchronously
-	orderWithID, createOrderErr := m.ordersRepository.SaveOrder(o)
+	newOrder, createOrderErr := m.ordersRepository.SaveOrder(o)
 	if createOrderErr != nil {
 		m.log.Error("save order", "order", o, "error", createOrderErr)
-		return nil, ErrSaveOrder
+		return Order{}, ErrSaveOrder
 	}
 
-	b := &booking.Booking{
-		Room: &booking.Room{
-			ID:      o.RoomID,
-			HotelID: o.HotelID,
+	b := booking.Booking{
+		Room: booking.Room{
+			ID:      newOrder.RoomID,
+			HotelID: newOrder.HotelID,
 		},
-		CheckInDateTime:  o.CheckInDateTime,
-		CheckOutDateTime: o.CheckOutDateTime,
+		CheckInDateTime:  newOrder.CheckInDateTime,
+		CheckOutDateTime: newOrder.CheckOutDateTime,
 	}
 
 	// to simplify the example we check room availability synchronously, save the booking, and change order status
 	isRoomAvailable := m.roomsManager.IsRoomAvailable(b)
 	if !isRoomAvailable {
 		m.log.Debug("room is not available", "booking", b)
-		o.Status = StatusDeclined
+		newOrder.Status = StatusDeclined
 
-		if _, updateOrderErr := m.ordersRepository.SaveOrder(o); updateOrderErr != nil {
-			m.log.Error("update order", "order", o, "booking", b, "error", createOrderErr)
-			return nil, ErrSaveOrder
+		if _, updateOrderErr := m.ordersRepository.SaveOrder(newOrder); updateOrderErr != nil {
+			m.log.Error("update order", "order", newOrder, "booking", b, "error", createOrderErr)
+			return Order{}, ErrSaveOrder
 		}
 
-		return nil, nil
+		return Order{}, nil
 	}
 
 	if saveBookingErr := m.roomsManager.UpdateBooking(b); saveBookingErr != nil {
-		m.log.Error("save booking", "order", o, "booking", b, "error", saveBookingErr)
-		return nil, ErrSaveOrder
+		m.log.Error("save booking", "order", newOrder, "booking", b, "error", saveBookingErr)
+		return Order{}, ErrSaveOrder
 	}
 
-	o.Status = StatusApproved
-	if _, updateOrderErr := m.ordersRepository.SaveOrder(o); updateOrderErr != nil {
-		m.log.Error("update order", "order", o, "booking", b, "error", createOrderErr)
-		return nil, ErrSaveOrder
+	newOrder.Status = StatusApproved
+	approvedOrder, updateOrderErr := m.ordersRepository.SaveOrder(newOrder)
+	if updateOrderErr != nil {
+		m.log.Error("update order", "order", newOrder, "booking", b, "error", createOrderErr)
+		return Order{}, ErrSaveOrder
 	}
 
-	return orderWithID, nil
+	return approvedOrder, nil
 }

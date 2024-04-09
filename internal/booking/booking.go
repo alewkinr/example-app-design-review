@@ -10,7 +10,7 @@ type Room struct {
 
 // Booking — model of room booking in hotel
 type Booking struct {
-	Room *Room
+	Room Room
 
 	CheckInDateTime  time.Time
 	CheckOutDateTime time.Time
